@@ -94,7 +94,7 @@ const CrudForm = ({ fields, editing, onSave, onCancel }) => {
 };
 
 // Action buttons with edit/delete
-const ActionButtons = ({ onEdit, onDelete, onView }) => (
+const ActionButtons = ({ onEdit, onDelete, onView = null }) => (
   <div className="flex gap-1">
     {onView && (
       <button onClick={onView} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="View">

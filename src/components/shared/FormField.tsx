@@ -8,4 +8,9 @@ const FormField = ({ label, error, children }) => {
   );
 };
 
+FormField.defaultProps = {
+  error: null,
+  label: null,
+};
+
 export default FormField;
