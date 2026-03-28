@@ -1,12 +1,12 @@
 export const getStatusColor = (status) => {
   const colors = {
-    New: "bg-blue-100 text-blue-700",
-    Allocated: "bg-amber-100 text-amber-700",
-    Confirmed: "bg-emerald-100 text-emerald-700",
-    Pending: "bg-amber-100 text-amber-700",
-    Paid: "bg-emerald-100 text-emerald-700",
-    Verified: "bg-emerald-100 text-emerald-700",
-    Submitted: "bg-blue-100 text-blue-700",
+    New: "bg-muted text-muted-foreground",
+    Allocated: "bg-primary/10 text-primary",
+    Confirmed: "bg-emerald-50 text-emerald-700",
+    Pending: "bg-amber-50 text-amber-700",
+    Paid: "bg-emerald-50 text-emerald-700",
+    Verified: "bg-emerald-50 text-emerald-700",
+    Submitted: "bg-primary/10 text-primary",
   };
   return colors[status] || "bg-muted text-muted-foreground";
 };

@@ -5,8 +5,9 @@ import DataTable from "@/components/shared/DataTable";
 import FormField from "@/components/shared/FormField";
 import Modal from "@/components/shared/Modal";
 import { generateId } from "@/utils/helpers";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 
+const inputClass = "w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-shadow";
 const QUOTA_TYPES = ["KCET", "COMEDK", "Management"];
 
 const initialData = [
@@ -63,55 +64,60 @@ const Quota = () => {
     <DashboardLayout title="Seat Matrix / Quota">
       {view === "form" ? (
         <>
-          <h2 className="text-base font-semibold mb-4">{editing ? "Edit Quota" : "Add Quota"}</h2>
-          <div className="bg-card border rounded-lg p-6 max-w-2xl">
+          <button onClick={backToTable} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors">
+            <ArrowLeft size={16} /> Back to list
+          </button>
+          <div className="bg-card border rounded-xl p-6 max-w-2xl card-shadow">
+            <h3 className="text-lg font-semibold mb-5">{editing ? "Edit Quota" : "Add Quota"}</h3>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
                 <FormField label="Program" error={errors.program?.message}>
-                  <select className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring" {...register("program", { required: "Program is required" })}>
+                  <select className={inputClass} {...register("program", { required: "Program is required" })}>
                     <option value="">Select Program</option>
                     <option value="B.Tech CS">B.Tech CS</option>
                     <option value="B.Tech Mech">B.Tech Mech</option>
                   </select>
                 </FormField>
                 <FormField label="Total Intake" error={errors.totalIntake?.message}>
-                  <input type="number" className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring" {...register("totalIntake", { required: "Required", min: { value: 1, message: "Must be > 0" } })} />
+                  <input type="number" className={inputClass} placeholder="Enter total intake" {...register("totalIntake", { required: "Required", min: { value: 1, message: "Must be > 0" } })} />
                 </FormField>
               </div>
 
-              <h3 className="text-sm font-semibold mt-4 mb-2">Quota Distribution</h3>
-              <div className="border rounded-md overflow-hidden mb-3">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/50 border-b">
-                      <th className="text-left px-4 py-2 font-medium text-muted-foreground">Quota</th>
-                      <th className="text-left px-4 py-2 font-medium text-muted-foreground">Seats</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {QUOTA_TYPES.map((qt) => {
-                      const key = qt.toLowerCase();
-                      return (
-                        <tr key={qt} className="border-b last:border-0">
-                          <td className="px-4 py-2">{qt}</td>
-                          <td className="px-4 py-2">
-                            <input type="number" className="w-24 px-2 py-1 border rounded text-sm bg-background" {...register(key, { required: "Required", min: 0 })} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="mt-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 pb-2 border-b">Quota Distribution</h4>
+                <div className="border rounded-lg overflow-hidden mb-4">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/60 border-b">
+                        <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Quota</th>
+                        <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Seats</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {QUOTA_TYPES.map((qt) => {
+                        const key = qt.toLowerCase();
+                        return (
+                          <tr key={qt} className="border-b last:border-0">
+                            <td className="px-4 py-3 font-medium">{qt}</td>
+                            <td className="px-4 py-3">
+                              <input type="number" className="w-24 px-2.5 py-1.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring" {...register(key, { required: "Required", min: 0 })} />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className={`text-sm font-medium mb-5 px-3 py-2 rounded-lg ${isMismatch ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground"}`}>
+                  Allocated: {allocated} / {watchIntake || 0}
+                  {isMismatch && <span className="ml-2 text-xs">(Must equal total intake)</span>}
+                </div>
               </div>
 
-              <div className={`text-sm font-medium mb-4 ${isMismatch ? "text-destructive" : "text-foreground"}`}>
-                Allocated: {allocated} / {watchIntake || 0}
-                {isMismatch && <span className="ml-2 text-xs">(Must equal total intake)</span>}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={backToTable} className="px-4 py-2 text-sm border rounded-md hover:bg-muted">Cancel</button>
-                <button type="submit" disabled={isMismatch} className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">
+              <div className="flex justify-end gap-2.5 pt-4 border-t">
+                <button type="button" onClick={backToTable} className="px-4 py-2.5 text-sm font-medium border rounded-lg hover:bg-muted transition-colors">Cancel</button>
+                <button type="submit" disabled={isMismatch} className="px-5 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shadow-sm">
                   {editing ? "Update" : "Save"}
                 </button>
               </div>
@@ -120,9 +126,9 @@ const Quota = () => {
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold">Manage Quotas</h2>
-            <button onClick={openAdd} className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold">Manage Quotas</h2>
+            <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm">
               <Plus size={16} /> Add New
             </button>
           </div>
@@ -131,21 +137,20 @@ const Quota = () => {
             data={data}
             searchKeys={["program"]}
             actions={(row) => (
-              <div className="flex gap-1">
-                <button onClick={() => openEdit(row)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Pencil size={14} /></button>
-                <button onClick={() => setDeleteId(row.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+              <div className="flex gap-0.5">
+                <button onClick={() => openEdit(row)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Pencil size={15} /></button>
+                <button onClick={() => setDeleteId(row.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={15} /></button>
               </div>
             )}
           />
         </>
       )}
 
-      {/* Delete confirmation */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Confirm Delete">
-        <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete this quota entry?</p>
-        <div className="flex justify-end gap-2">
-          <button onClick={() => setDeleteId(null)} className="px-4 py-2 text-sm border rounded-md hover:bg-muted">Cancel</button>
-          <button onClick={() => { setData(data.filter((d) => d.id !== deleteId)); setDeleteId(null); }} className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:opacity-90">Delete</button>
+        <p className="text-sm text-muted-foreground mb-5">Are you sure you want to delete this quota entry?</p>
+        <div className="flex justify-end gap-2.5">
+          <button onClick={() => setDeleteId(null)} className="px-4 py-2.5 text-sm font-medium border rounded-lg hover:bg-muted transition-colors">Cancel</button>
+          <button onClick={() => { setData(data.filter((d) => d.id !== deleteId)); setDeleteId(null); }} className="px-4 py-2.5 text-sm font-medium rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity">Delete</button>
         </div>
       </Modal>
     </DashboardLayout>

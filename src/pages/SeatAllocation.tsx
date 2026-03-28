@@ -32,7 +32,7 @@ const SeatAllocation = () => {
     { key: "program", label: "Program" },
     { key: "quotaType", label: "Quota" },
     { key: "marks", label: "Marks" },
-    { key: "status", label: "Status", render: (val) => <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span> },
+    { key: "status", label: "Status", render: (val) => <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span> },
   ];
 
   if (selected) {
@@ -42,42 +42,54 @@ const SeatAllocation = () => {
 
     return (
       <DashboardLayout title="Seat Allocation">
-        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors">
           <ArrowLeft size={16} /> Back to list
         </button>
 
-        <div className="max-w-3xl space-y-4">
+        <div className="max-w-3xl space-y-5">
           {/* Applicant Info */}
-          <div className="bg-card border rounded-lg p-5">
-            <h3 className="text-sm font-semibold mb-3">Applicant Information</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div><p className="text-muted-foreground">Name</p><p className="font-medium">{selected.name}</p></div>
-              <div><p className="text-muted-foreground">Program</p><p className="font-medium">{selected.program}</p></div>
-              <div><p className="text-muted-foreground">Quota</p><p className="font-medium">{selected.quotaType}</p></div>
-              <div><p className="text-muted-foreground">Marks</p><p className="font-medium">{selected.marks}</p></div>
+          <div className="bg-card border rounded-xl p-6 card-shadow">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Applicant Information</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 text-sm">
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Name</p>
+                <p className="font-medium">{selected.name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Program</p>
+                <p className="font-medium">{selected.program}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Quota</p>
+                <p className="font-medium">{selected.quotaType}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Marks</p>
+                <p className="font-medium">{selected.marks}</p>
+              </div>
             </div>
           </div>
 
           {/* Seat Availability */}
-          <div className="bg-card border rounded-lg p-5">
-            <h3 className="text-sm font-semibold mb-3">Seat Availability</h3>
-            <div className="border rounded-md overflow-hidden">
+          <div className="bg-card border rounded-xl p-6 card-shadow">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Seat Availability</h3>
+            <div className="border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-muted/50 border-b">
-                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Quota</th>
-                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Total</th>
-                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Filled</th>
-                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Remaining</th>
+                  <tr className="bg-muted/60 border-b">
+                    <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Quota</th>
+                    <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Total</th>
+                    <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Filled</th>
+                    <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Remaining</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {quotaData.map((q) => (
-                    <tr key={q.quota} className={`border-b last:border-0 ${q.quota === selected.quotaType ? "bg-primary/5" : ""}`}>
-                      <td className="px-4 py-2 font-medium">{q.quota}</td>
-                      <td className="px-4 py-2">{q.total}</td>
-                      <td className="px-4 py-2">{q.filled}</td>
-                      <td className="px-4 py-2">{q.remaining === 0 ? <span className="text-destructive font-medium">0</span> : q.remaining}</td>
+                  {quotaData.map((q, i) => (
+                    <tr key={q.quota} className={`border-b last:border-0 ${q.quota === selected.quotaType ? "bg-primary/[0.04]" : i % 2 === 1 ? "bg-muted/20" : ""}`}>
+                      <td className="px-4 py-3 font-medium">{q.quota}</td>
+                      <td className="px-4 py-3">{q.total}</td>
+                      <td className="px-4 py-3">{q.filled}</td>
+                      <td className="px-4 py-3">{q.remaining === 0 ? <span className="text-destructive font-semibold">0</span> : <span className="font-medium">{q.remaining}</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -87,23 +99,23 @@ const SeatAllocation = () => {
 
           {/* Allotment Number */}
           {showAllotment && (
-            <div className="bg-card border rounded-lg p-5">
-              <h3 className="text-sm font-semibold mb-2">Allotment Number</h3>
+            <div className="bg-card border rounded-xl p-6 card-shadow">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Allotment Number</h3>
               <p className="text-sm font-medium">{selected.allotmentNumber || "—"}</p>
             </div>
           )}
 
           {/* Action */}
-          <div className="flex gap-2">
+          <div className="pt-1">
             {remaining > 0 ? (
               <button
                 onClick={() => handleAllocate(selected.id)}
-                className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                className="px-5 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
               >
                 Allocate Seat
               </button>
             ) : (
-              <div className="px-4 py-2 text-sm rounded-md bg-destructive/10 text-destructive font-medium">
+              <div className="inline-flex px-4 py-2.5 text-sm rounded-lg bg-destructive/10 text-destructive font-medium">
                 Quota Full — Cannot Allocate
               </div>
             )}
@@ -115,7 +127,7 @@ const SeatAllocation = () => {
 
   return (
     <DashboardLayout title="Seat Allocation">
-      <h2 className="text-base font-semibold mb-4">Applicants — Pending Allocation</h2>
+      <h2 className="text-lg font-semibold mb-5">Applicants — Pending Allocation</h2>
       <DataTable
         columns={applicantColumns}
         data={newApplicants}
@@ -123,7 +135,7 @@ const SeatAllocation = () => {
         actions={(row) => (
           <button
             onClick={() => setSelected(row)}
-            className="px-3 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:opacity-90"
+            className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
           >
             Allocate
           </button>

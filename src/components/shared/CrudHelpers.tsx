@@ -3,12 +3,11 @@ import { useForm } from "react-hook-form";
 import FormField from "@/components/shared/FormField";
 import Modal from "@/components/shared/Modal";
 import { generateId } from "@/utils/helpers";
-import { Pencil, Trash2, Plus, Eye } from "lucide-react";
+import { Pencil, Trash2, Plus, Eye, ArrowLeft } from "lucide-react";
 
-// Hook: manages data + inline form/table toggle + delete confirmation
 const useCrudPage = (initialData = []) => {
   const [data, setData] = useState(initialData);
-  const [view, setView] = useState("table"); // "table" | "form"
+  const [view, setView] = useState("table");
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -35,22 +34,29 @@ const useCrudPage = (initialData = []) => {
   return { data, view, editing, deleteId, openAdd, openEdit, backToTable, save, confirmDelete, cancelDelete, executeDelete };
 };
 
-// Inline form that replaces table view
+const inputClass = "w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-shadow";
+const inputDisabledClass = `${inputClass} disabled:bg-muted disabled:cursor-not-allowed`;
+
 const CrudForm = ({ fields, editing, onSave, onCancel }) => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: editing || {},
   });
 
   return (
-    <div className="bg-card border rounded-lg p-6 max-w-2xl">
-      <h3 className="text-base font-semibold mb-4">{editing ? "Edit Record" : "Add New Record"}</h3>
+    <div className="bg-card border rounded-xl p-6 max-w-2xl card-shadow">
+      <div className="flex items-center gap-3 mb-5">
+        <button type="button" onClick={onCancel} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+          <ArrowLeft size={18} />
+        </button>
+        <h3 className="text-base font-semibold">{editing ? "Edit Record" : "Add New Record"}</h3>
+      </div>
       <form onSubmit={handleSubmit(onSave)}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
           {fields.map((field) => (
             <FormField key={field.name} label={field.label} error={errors[field.name]?.message}>
               {field.type === "select" ? (
                 <select
-                  className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  className={inputClass}
                   disabled={field.disabled}
                   {...register(field.name, { required: field.required !== false ? `${field.label} is required` : false })}
                 >
@@ -60,10 +66,10 @@ const CrudForm = ({ fields, editing, onSave, onCancel }) => {
                   ))}
                 </select>
               ) : field.type === "multiselect" ? (
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-4 flex-wrap py-1">
                   {(field.options || []).map((opt) => (
-                    <label key={opt} className="flex items-center gap-1.5 text-sm">
-                      <input type="checkbox" value={opt} {...register(field.name)} />
+                    <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input type="checkbox" value={opt} className="rounded border-border" {...register(field.name)} />
                       {opt}
                     </label>
                   ))}
@@ -71,8 +77,8 @@ const CrudForm = ({ fields, editing, onSave, onCancel }) => {
               ) : (
                 <input
                   type={field.type || "text"}
-                  className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
-                  placeholder={field.placeholder || field.label}
+                  className={inputDisabledClass}
+                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
                   disabled={field.disabled}
                   {...register(field.name, { required: field.required !== false ? `${field.label} is required` : false })}
                 />
@@ -80,11 +86,11 @@ const CrudForm = ({ fields, editing, onSave, onCancel }) => {
             </FormField>
           ))}
         </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm border rounded-md hover:bg-muted">
+        <div className="flex justify-end gap-2.5 mt-2 pt-4 border-t">
+          <button type="button" onClick={onCancel} className="px-4 py-2.5 text-sm font-medium border rounded-lg hover:bg-muted transition-colors">
             Cancel
           </button>
-          <button type="submit" className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90">
+          <button type="submit" className="px-5 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
             {editing ? "Update" : "Create"}
           </button>
         </div>
@@ -93,40 +99,37 @@ const CrudForm = ({ fields, editing, onSave, onCancel }) => {
   );
 };
 
-// Action buttons with edit/delete
 const ActionButtons = ({ onEdit, onDelete, onView = null }) => (
-  <div className="flex gap-1">
+  <div className="flex gap-0.5">
     {onView && (
-      <button onClick={onView} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="View">
-        <Eye size={14} />
+      <button onClick={onView} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="View">
+        <Eye size={15} />
       </button>
     )}
-    <button onClick={onEdit} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Edit">
-      <Pencil size={14} />
+    <button onClick={onEdit} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+      <Pencil size={15} />
     </button>
-    <button onClick={onDelete} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title="Delete">
-      <Trash2 size={14} />
+    <button onClick={onDelete} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+      <Trash2 size={15} />
     </button>
   </div>
 );
 
-// Page header with Add New button
 const PageHeader = ({ title, onAdd }) => (
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="text-base font-semibold">{title}</h2>
-    <button onClick={onAdd} className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90">
+  <div className="flex items-center justify-between mb-5">
+    <h2 className="text-lg font-semibold">{title}</h2>
+    <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm">
       <Plus size={16} /> Add New
     </button>
   </div>
 );
 
-// Delete confirmation modal
 const DeleteConfirmModal = ({ isOpen, onCancel, onConfirm }) => (
   <Modal isOpen={isOpen} onClose={onCancel} title="Confirm Delete">
-    <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete this record? This action cannot be undone.</p>
-    <div className="flex justify-end gap-2">
-      <button onClick={onCancel} className="px-4 py-2 text-sm border rounded-md hover:bg-muted">Cancel</button>
-      <button onClick={onConfirm} className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:opacity-90">Delete</button>
+    <p className="text-sm text-muted-foreground mb-5">Are you sure you want to delete this record? This action cannot be undone.</p>
+    <div className="flex justify-end gap-2.5">
+      <button onClick={onCancel} className="px-4 py-2.5 text-sm font-medium border rounded-lg hover:bg-muted transition-colors">Cancel</button>
+      <button onClick={onConfirm} className="px-4 py-2.5 text-sm font-medium rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity">Delete</button>
     </div>
   </Modal>
 );

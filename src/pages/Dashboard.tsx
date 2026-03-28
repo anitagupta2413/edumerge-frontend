@@ -2,13 +2,13 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import DataTable from "@/components/shared/DataTable";
 import { Users, Armchair, ClipboardCheck, Grid3X3, TrendingUp } from "lucide-react";
 import { getStatusColor } from "@/utils/helpers";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const stats = [
-  { label: "Total Applicants", value: 1245, icon: Users, color: "bg-blue-50 text-blue-600" },
-  { label: "Total Seats", value: 800, icon: Grid3X3, color: "bg-emerald-50 text-emerald-600" },
-  { label: "Allocated Seats", value: 623, icon: Armchair, color: "bg-amber-50 text-amber-600" },
-  { label: "Confirmed Admissions", value: 412, icon: ClipboardCheck, color: "bg-violet-50 text-violet-600" },
+  { label: "Total Applicants", value: 1245, icon: Users, bg: "bg-primary/10", fg: "text-primary" },
+  { label: "Total Seats", value: 800, icon: Grid3X3, bg: "bg-emerald-50", fg: "text-emerald-600" },
+  { label: "Allocated Seats", value: 623, icon: Armchair, bg: "bg-amber-50", fg: "text-amber-600" },
+  { label: "Confirmed", value: 412, icon: ClipboardCheck, bg: "bg-violet-50", fg: "text-violet-600" },
 ];
 
 const recentApplicants = [
@@ -27,7 +27,7 @@ const barData = [
 ];
 
 const pieData = [
-  { name: "KCET", value: 450, color: "hsl(215, 80%, 48%)" },
+  { name: "KCET", value: 450, color: "hsl(217, 91%, 60%)" },
   { name: "COMEDK", value: 380, color: "hsl(142, 71%, 45%)" },
   { name: "Management", value: 415, color: "hsl(38, 92%, 50%)" },
 ];
@@ -40,7 +40,7 @@ const recentColumns = [
     key: "status",
     label: "Status",
     render: (val) => (
-      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span>
+      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span>
     ),
   },
 ];
@@ -53,14 +53,14 @@ const Dashboard = () => {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-card border rounded-lg p-5">
+            <div key={stat.label} className="bg-card border rounded-xl p-5 card-shadow hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value.toLocaleString()}</p>
+                  <p className="text-2xl font-bold mt-1.5">{stat.value.toLocaleString()}</p>
                 </div>
-                <div className={`p-2.5 rounded-lg ${stat.color}`}>
-                  <Icon size={20} />
+                <div className={`p-3 rounded-xl ${stat.bg}`}>
+                  <Icon size={22} className={stat.fg} />
                 </div>
               </div>
             </div>
@@ -68,43 +68,44 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Charts Row */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-card border rounded-lg p-5">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="bg-card border rounded-xl p-5 card-shadow">
+          <div className="flex items-center gap-2 mb-5">
             <TrendingUp size={16} className="text-muted-foreground" />
-            <h3 className="text-sm font-semibold">Applicants vs Seats by Program</h3>
+            <h3 className="text-sm font-semibold">Applicants vs Seats</h3>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 88%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 18%, 90%)" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="applicants" fill="hsl(215, 80%, 48%)" radius={[3, 3, 0, 0]} name="Applicants" />
-              <Bar dataKey="seats" fill="hsl(215, 80%, 48%, 0.35)" radius={[3, 3, 0, 0]} name="Seats" />
+              <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid hsl(214, 18%, 90%)", fontSize: "12px" }} />
+              <Bar dataKey="applicants" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} name="Applicants" />
+              <Bar dataKey="seats" fill="hsl(217, 91%, 60%, 0.3)" radius={[4, 4, 0, 0]} name="Seats" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card border rounded-lg p-5">
-          <h3 className="text-sm font-semibold mb-4">Applicants by Quota</h3>
-          <ResponsiveContainer width="100%" height={220}>
+        <div className="bg-card border rounded-xl p-5 card-shadow">
+          <h3 className="text-sm font-semibold mb-5">Quota Distribution</h3>
+          <ResponsiveContainer width="100%" height={240}>
             <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+              <Pie data={pieData} cx="50%" cy="50%" outerRadius={85} innerRadius={45} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
                 {pieData.map((entry, i) => (
                   <Cell key={i} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid hsl(214, 18%, 90%)", fontSize: "12px" }} />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Recent Applicants Table */}
-      <div className="bg-card border rounded-lg p-5">
-        <h3 className="text-sm font-semibold mb-3">Recent Applicants</h3>
+      {/* Recent Applicants */}
+      <div className="bg-card border rounded-xl p-5 card-shadow">
+        <h3 className="text-sm font-semibold mb-4">Recent Applicants</h3>
         <DataTable columns={recentColumns} data={recentApplicants} />
       </div>
     </DashboardLayout>
