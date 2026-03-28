@@ -1,7 +1,6 @@
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DataTable from "@/components/shared/DataTable";
-import Modal from "@/components/shared/Modal";
-import { useCrudPage, CrudForm, ActionButtons, PageHeader } from "@/components/shared/CrudHelpers";
+import { useCrudPage, CrudForm, ActionButtons, PageHeader, DeleteConfirmModal } from "@/components/shared/CrudHelpers";
 
 const columns = [
   { key: "name", label: "Department" },
@@ -24,11 +23,25 @@ const Department = () => {
   const crud = useCrudPage(initialData);
   return (
     <DashboardLayout title="Departments">
-      <PageHeader title="Manage Departments" onAdd={crud.openAdd} />
-      <DataTable columns={columns} data={crud.data} actions={(row) => <ActionButtons onEdit={() => crud.openEdit(row)} onDelete={() => crud.remove(row.id)} />} />
-      <Modal isOpen={crud.modalOpen} onClose={crud.close} title={crud.editing ? "Edit Department" : "Add Department"}>
-        <CrudForm fields={fields} editing={crud.editing} onSave={crud.save} onClose={crud.close} />
-      </Modal>
+      {crud.view === "form" ? (
+        <>
+          <h2 className="text-base font-semibold mb-4">{crud.editing ? "Edit Department" : "Add Department"}</h2>
+          <CrudForm fields={fields} editing={crud.editing} onSave={crud.save} onCancel={crud.backToTable} />
+        </>
+      ) : (
+        <>
+          <PageHeader title="Manage Departments" onAdd={crud.openAdd} />
+          <DataTable
+            columns={columns}
+            data={crud.data}
+            searchKeys={["name", "campus", "hod"]}
+            actions={(row) => (
+              <ActionButtons onEdit={() => crud.openEdit(row)} onDelete={() => crud.confirmDelete(row.id)} />
+            )}
+          />
+        </>
+      )}
+      <DeleteConfirmModal isOpen={!!crud.deleteId} onCancel={crud.cancelDelete} onConfirm={crud.executeDelete} />
     </DashboardLayout>
   );
 };
