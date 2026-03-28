@@ -1,4 +1,4 @@
-const DataTable = ({ columns, data, actions }) => {
+const DataTable = ({ columns, data, actions = null }) => {
   return (
     <div className="border rounded-md overflow-hidden bg-card">
       <div className="overflow-x-auto">
