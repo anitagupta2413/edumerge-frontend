@@ -5,6 +5,8 @@ export const getStatusColor = (status) => {
     Confirmed: "bg-emerald-100 text-emerald-700",
     Pending: "bg-amber-100 text-amber-700",
     Paid: "bg-emerald-100 text-emerald-700",
+    Verified: "bg-emerald-100 text-emerald-700",
+    Submitted: "bg-blue-100 text-blue-700",
   };
   return colors[status] || "bg-muted text-muted-foreground";
 };
