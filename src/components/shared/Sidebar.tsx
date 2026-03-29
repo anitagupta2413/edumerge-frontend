@@ -6,6 +6,8 @@ import {
   Grid3X3, Users, Armchair, ClipboardCheck, LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 const iconMap = {
   LayoutDashboard, Building2, MapPin, GraduationCap, BookOpen,
   Grid3X3, Users, Armchair, ClipboardCheck,
@@ -14,10 +16,11 @@ const iconMap = {
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    logout();
     navigate("/login");
   };
 

@@ -1,25 +1,35 @@
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import FormField from "@/components/shared/FormField";
 import { Lock, Mail, GraduationCap } from "lucide-react";
+import { loginSchema } from "@/lib/validations";
+import { useAuth } from "@/contexts/AuthContext";
+import api from "@/lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login: setAuth } = useAuth();
   const [error, setError] = useState("");
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
   const onSubmit = async (data) => {
     try {
       setError("");
-      if (data.email === "admin@ams.com" && data.password === "admin123") {
-        localStorage.setItem("token", "mock-jwt-token");
+      const response = await api.post("/auth/login", { email: data.email, password: data.password });
+
+      if (response.data.success) {
+        const { accessToken, ...userData } = response.data.data;
+        setAuth(accessToken, userData as any);
         navigate("/dashboard");
       } else {
-        setError("Invalid email or password");
+        setError(response.data.message || "Invalid email or password");
       }
-    } catch {
-      setError("Login failed. Please try again.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     }
   };
 
@@ -74,10 +84,6 @@ const Login = () => {
                 {isSubmitting ? "Signing in..." : "Sign In"}
               </button>
             </form>
-
-            <p className="text-xs text-muted-foreground text-center mt-6 bg-muted px-3 py-2.5 rounded-lg">
-              Demo: <strong>admin@ams.com</strong> / <strong>admin123</strong>
-            </p>
           </div>
         </div>
       </div>

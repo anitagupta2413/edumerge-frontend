@@ -1,44 +1,80 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DataTable from "@/components/shared/DataTable";
 import { getStatusColor } from "@/utils/helpers";
 import { ArrowLeft } from "lucide-react";
+import api from "@/lib/api";
 
-const initialApplicants = [
-  { id: "1", name: "John Doe", program: "B.Tech CS", quotaType: "KCET", marks: "85", allotmentNumber: "KC12345", status: "New" },
-  { id: "2", name: "Sara Davis", program: "B.Tech Mech", quotaType: "COMEDK", marks: "78", allotmentNumber: "CD99999", status: "New" },
-  { id: "3", name: "Tom Brown", program: "B.Tech CS", quotaType: "Management", marks: "70", allotmentNumber: "", status: "New" },
-];
-
-const quotaData = [
-  { quota: "KCET", total: 50, filled: 45, remaining: 5 },
-  { quota: "COMEDK", total: 40, filled: 40, remaining: 0 },
-  { quota: "Management", total: 30, filled: 20, remaining: 10 },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 const SeatAllocation = () => {
-  const [applicants, setApplicants] = useState(initialApplicants);
+  const { canWrite } = useAuth();
+  const [applicants, setApplicants] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [quotaData, setQuotaData] = useState([]);
 
-  const newApplicants = applicants.filter((a) => a.status === "New");
+  const hasWriteAccess = canWrite("seat-allocation");
 
-  const handleAllocate = (id) => {
-    setApplicants(applicants.map((a) => (a.id === id ? { ...a, status: "Allocated" } : a)));
-    setSelected(null);
+  useEffect(() => {
+    fetchApplicants();
+  }, []);
+
+  useEffect(() => {
+    if (selected && selected.programId) {
+      api.get(`/seat-allocation?programId=${selected.programId}`)
+        .then(res => {
+          if (res.data.success) {
+            const arr = res.data.data.map(q => ({
+              quotaId: q.quotaId,
+              quota: q.quotaName,
+              total: q.totalSeats,
+              filled: q.filledSeats,
+              remaining: q.remainingSeats
+            }));
+            setQuotaData(arr);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+  }, [selected]);
+
+  const fetchApplicants = () => {
+    api.get("/applicants").then((res) => {
+      if (res.data.success) {
+        setApplicants(res.data.data);
+      }
+    });
+  };
+
+  const newApplicants = applicants.filter((a) => a.status === "NEW");
+
+  const handleAllocate = async (id) => {
+    try {
+      await api.post("/seat-allocation", {
+        applicantId: id,
+        programId: selected.programId,
+        quotaId: selected.quotaId
+      });
+      fetchApplicants();
+      setSelected(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to allocate seat. Quota may be full.");
+    }
   };
 
   const applicantColumns = [
     { key: "name", label: "Name" },
-    { key: "program", label: "Program" },
-    { key: "quotaType", label: "Quota" },
+    { key: "programName", label: "Program", render: (_, row) => row.Program?.name },
+    { key: "quotaName", label: "Quota", render: (_, row) => row.Quota?.name },
     { key: "marks", label: "Marks" },
     { key: "status", label: "Status", render: (val) => <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span> },
   ];
 
   if (selected) {
-    const quotaRow = quotaData.find((q) => q.quota === selected.quotaType);
+    const quotaRow = quotaData.find((q) => q.quotaId === selected.quotaId);
     const remaining = quotaRow ? quotaRow.remaining : 0;
-    const showAllotment = selected.quotaType === "KCET" || selected.quotaType === "COMEDK";
+    const showAllotment = selected.Quota?.name === "KCET" || selected.Quota?.name === "COMEDK";
 
     return (
       <DashboardLayout title="Seat Allocation">
@@ -57,11 +93,11 @@ const SeatAllocation = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Program</p>
-                <p className="font-medium">{selected.program}</p>
+                <p className="font-medium">{selected.Program?.name}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Quota</p>
-                <p className="font-medium">{selected.quotaType}</p>
+                <p className="font-medium">{selected.Quota?.name}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Marks</p>
@@ -85,13 +121,16 @@ const SeatAllocation = () => {
                 </thead>
                 <tbody>
                   {quotaData.map((q, i) => (
-                    <tr key={q.quota} className={`border-b last:border-0 ${q.quota === selected.quotaType ? "bg-primary/[0.04]" : i % 2 === 1 ? "bg-muted/20" : ""}`}>
+                    <tr key={q.quota} className={`border-b last:border-0 ${q.quotaId === selected.quotaId ? "bg-primary/[0.04]" : i % 2 === 1 ? "bg-muted/20" : ""}`}>
                       <td className="px-4 py-3 font-medium">{q.quota}</td>
                       <td className="px-4 py-3">{q.total}</td>
                       <td className="px-4 py-3">{q.filled}</td>
                       <td className="px-4 py-3">{q.remaining === 0 ? <span className="text-destructive font-semibold">0</span> : <span className="font-medium">{q.remaining}</span>}</td>
                     </tr>
                   ))}
+                  {quotaData.length === 0 && (
+                    <tr><td colSpan={4} className="text-center py-4 text-muted-foreground">Loading specific quota availability...</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -107,16 +146,22 @@ const SeatAllocation = () => {
 
           {/* Action */}
           <div className="pt-1">
-            {remaining > 0 ? (
-              <button
-                onClick={() => handleAllocate(selected.id)}
-                className="px-5 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
-              >
-                Allocate Seat
-              </button>
+            {hasWriteAccess ? (
+              remaining > 0 ? (
+                <button
+                  onClick={() => handleAllocate(selected.id)}
+                  className="px-5 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+                >
+                  Allocate Seat
+                </button>
+              ) : (
+                <div className="inline-flex px-4 py-2.5 text-sm rounded-lg bg-destructive/10 text-destructive font-medium">
+                  Quota Full / Not Configured
+                </div>
+              )
             ) : (
-              <div className="inline-flex px-4 py-2.5 text-sm rounded-lg bg-destructive/10 text-destructive font-medium">
-                Quota Full — Cannot Allocate
+              <div className="inline-flex px-4 py-2.5 text-sm rounded-lg bg-muted text-foreground font-medium">
+                View Only Mode
               </div>
             )}
           </div>
@@ -127,17 +172,16 @@ const SeatAllocation = () => {
 
   return (
     <DashboardLayout title="Seat Allocation">
-      <h2 className="text-lg font-semibold mb-5">Applicants — Pending Allocation</h2>
       <DataTable
         columns={applicantColumns}
         data={newApplicants}
-        searchKeys={["name", "program", "quotaType"]}
+        searchKeys={["name"]}
         actions={(row) => (
           <button
             onClick={() => setSelected(row)}
             className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            Allocate
+            {hasWriteAccess ? "Allocate" : "View"}
           </button>
         )}
       />
