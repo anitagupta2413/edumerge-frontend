@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DataTable from "@/components/shared/DataTable";
-import { getStatusColor } from "@/utils/helpers";
+import { getStatusColor, confirmationLabel } from "@/utils/helpers";
 import { ArrowLeft, CheckCircle2, AlertCircle, Save } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,14 +84,17 @@ const Admissions = () => {
         </span>
       ) 
     },
-    { 
-      key: "status", 
-      label: "Final Status", 
-      render: (val) => (
-        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(val)}`}>
-          {val}
-        </span>
-      ) 
+    {
+      key: "Admission.admissionConfirmation",
+      label: "Final Status",
+      render: (_, row) => {
+        const label = confirmationLabel(row.Admission?.admissionConfirmation === true);
+        return (
+          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(label)}`}>
+            {label}
+          </span>
+        );
+      }
     },
   ];
 

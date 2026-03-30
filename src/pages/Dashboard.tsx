@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DataTable from "@/components/shared/DataTable";
 import { Users, Armchair, ClipboardCheck, Grid3X3 } from "lucide-react";
-import { getStatusColor } from "@/utils/helpers";
+import { getStatusColor, capitalize, confirmationLabel } from "@/utils/helpers";
 import api from "@/lib/api";
 
 const recentColumns = [
@@ -10,11 +10,31 @@ const recentColumns = [
   { key: "program", label: "Program", render: (_, row) => row.Program?.name || "—" },
   { key: "quota", label: "Quota", render: (_, row) => row.Quota?.name || "—" },
   {
-    key: "status",
-    label: "Status",
+    key: "feeStatus",
+    label: "Fee",
+    render: (_, row) => {
+      const status = row.Admission?.feeStatus;
+      if (!status) return "—";
+      const label = capitalize(status);
+      return <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(label)}`}>{label}</span>;
+    },
+  },
+  {
+    key: "docStatus",
+    label: "Documents",
     render: (val) => (
       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(val)}`}>{val}</span>
     ),
+  },
+  {
+    key: "admissionConfirmation",
+    label: "Admission",
+    render: (_, row) => {
+      const confirmed = row.Admission?.admissionConfirmation;
+      if (confirmed === undefined || confirmed === null) return "—";
+      const label = confirmationLabel(confirmed);
+      return <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(label)}`}>{label}</span>;
+    },
   },
 ];
 
@@ -51,8 +71,8 @@ const Dashboard = () => {
         // Confirmed Admissions (from admissions table, check admissionConfirmation)
         const confirmedAdmissions = admissions.filter(a => a.Admission?.admissionConfirmation === true).length;
 
-        // Allocated Seats (set to same as confirmed per user request)
-        const allocatedSeats = confirmedAdmissions;
+        // Allocated Seats (allocated + confirmed, since confirmed also holds a seat)
+        const allocatedSeats = applicants.filter(a => a.seatAllocated === true).length;
 
         setStats([
           { label: "Total Applicants", value: totalApplicants, icon: Users, bg: "bg-primary/10", fg: "text-primary" },

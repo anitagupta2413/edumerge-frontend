@@ -13,6 +13,10 @@ export const getStatusColor = (status) => {
 
 export const generateId = () => Math.random().toString(36).substring(2, 9);
 
+export const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+export const confirmationLabel = (confirmed) => confirmed ? "Confirmed" : "Pending";
+
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
